@@ -24,6 +24,17 @@ resource "aws_instance" "node01" {
 
 }
 
+resource "aws_instance" "node02" {
+  ami = "${lookup(var.amis, "ubuntu-server")}"
+    instance_type = "t2.micro"
+  tags = {
+      "Name"="${var.instance_names[2]}"
+      "training"="${var.training_name}"
+  }
+  key_name="${aws_key_pair.generated_key.key_name}"
+
+}
+
 resource "aws_instance" "ansible-host" {
   ami = "${lookup(var.amis, "ubuntu-server")}"
   instance_type = "t2.micro"
@@ -46,10 +57,18 @@ resource "aws_instance" "ansible-host" {
 
   provisioner "remote-exec" {
     inline = [
-        "sudo apt-add-repository ppa:ansible/ansible -y",
-        "sudo apt-get update",
-        "sudo apt-get install ansible -y",
-        "chmod 400 /home/ubuntu/.ssh/${local_file.private_key.filename}"
+        "sudo apt-get update --yes",
+        "sudo apt-get install software-properties-common --yes",
+        "sudo apt-add-repository --yes --update ppa:ansible/ansible",
+        "sudo apt-get install ansible --yes",
+        "chmod 400 /home/ubuntu/.ssh/${local_file.private_key.filename}",
+        "echo '[demo_hosts]' | sudo tee -a /etc/ansible/hosts > /dev/null",
+        "echo '${var.instance_names[1]} ansible_user=ubuntu' | sudo tee -a /etc/ansible/hosts > /dev/null",
+        "echo '${var.instance_names[2]} ansible_user=ubuntu' | sudo tee -a /etc/ansible/hosts > /dev/null",
+        "echo '${aws_instance.node01.private_ip} ${var.instance_names[1]}' | sudo tee -a /etc/hosts > /dev/null",
+        "echo '${aws_instance.node02.private_ip} ${var.instance_names[2]}' | sudo tee -a /etc/hosts > /dev/null",      
+        "eval `ssh-agent -s`",
+        "ssh-add /home/ubuntu/.ssh/${local_file.private_key.filename}"
     ]
 
     connection {
