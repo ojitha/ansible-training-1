@@ -5,6 +5,6 @@ amis = {
 
 my_region = "ap-southeast-2"
 
-instance_names = ["ansible-host", "node1","node2"]
+instance_names = ["ansible-host", "node01","node02"]
 
 training_name = "DevOps : Automate Your Infrastructure Using Ansible and IaC"
