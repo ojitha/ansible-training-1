@@ -42,6 +42,7 @@ resource "aws_instance" "node02" {
       "Name"="${var.instance_names[2]}"
       "training"="${var.training_name}"
   }
+  #depends_on = ["aws_instance.node01", "aws_instance.node02"]
 
   key_name="${aws_key_pair.generated_key.key_name}"
     provisioner "remote-exec" {
@@ -88,9 +89,7 @@ resource "aws_instance" "ansible-host" {
         "echo '${var.instance_names[1]} ansible_user=ubuntu' | sudo tee -a /etc/ansible/hosts > /dev/null",
         "echo '${var.instance_names[2]} ansible_user=ubuntu' | sudo tee -a /etc/ansible/hosts > /dev/null",
         "echo '${aws_instance.node01.private_ip} ${var.instance_names[1]}' | sudo tee -a /etc/hosts > /dev/null",
-        "echo '${aws_instance.node02.private_ip} ${var.instance_names[2]}' | sudo tee -a /etc/hosts > /dev/null",      
-        "eval $(ssh-agent -s)",
-        "ssh-add /home/ubuntu/.ssh/${local_file.private_key.filename}"
+        "echo '${aws_instance.node02.private_ip} ${var.instance_names[2]}' | sudo tee -a /etc/hosts > /dev/null"
     ]
 
     connection {
